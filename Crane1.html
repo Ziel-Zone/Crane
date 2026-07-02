@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The First Crane — Companion Journey</title>
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&family=Source+Sans+3:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <style>
+    .font-serif-display { font-family: 'Cormorant Garamond', Georgia, serif; }
+    .font-sans-ui { font-family: 'Source Sans 3', system-ui, sans-serif; }
+    .font-mono-code { font-family: 'JetBrains Mono', ui-monospace, monospace; }
+
+    /* Animasi Mengambang Tenang */
+    @keyframes calmFloat {
+      0%, 100% { transform: translateY(0px) rotate(-0.5deg); }
+      50% { transform: translateY(-10px) rotate(1deg); }
+    }
+    .crane-float { animation: calmFloat 5s ease-in-out infinite; }
+
+    /* Kepakan Sayap Origami 2D Halus */
+    @keyframes wingFlap {
+      0%, 100% { transform: scaleY(1); }
+      50% { transform: scaleY(0.45); }
+    }
+    .wing-action { 
+      transform-origin: 110px 115px; 
+      animation: wingFlap 2.5s ease-in-out infinite; 
+    }
+
+    /* Efek Getar Saat Salah */
+    .shake { animation: shakeX 0.35s ease-in-out; }
+    @keyframes shakeX {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-5px); }
+      75% { transform: translateX(5px); }
+    }
+
+    /* Transisi Lipatan Baru */
+    @keyframes foldActive {
+      0% { transform: scale(0.96); opacity: 0.5; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    .fold-active { animation: foldActive 0.5s ease-out forwards; }
+  </style>
+</head>
+<body class="min-h-screen w-full flex flex-col justify-between p-6 sm:p-12 select-none" style="background-color: #F6F1E7; color: #2D2A26;">
+
+  <div class="absolute top-0 right-0 w-64 h-64 opacity-20 pointer-events-none">
+    <svg viewBox="0 0 100 100" fill="none" stroke="#A44A3F" stroke-width="0.5">
+      <path d="M100,0 C85,15 70,10 50,5 C65,25 55,40 40,35 M100,20 C80,35 75,55 60,65" />
+      <circle cx="50" cy="5" r="1" fill="#A44A3F" />
+      <circle cx="40" cy="35" r="1" fill="#A44A3F" />
+      <circle cx="60" cy="65" r="1" fill="#A44A3F" />
+    </svg>
+  </div>
+
+  <header id="main-header" class="w-full text-center max-w-2xl mx-auto pt-4">
+    <h1 class="font-serif-display text-4xl sm:text-5xl tracking-wide text-[#2D2A26]">The First Crane</h1>
+    <p class="font-sans-ui mt-2 text-sm text-[#8B857B]">
+      Visual Reward Companion &middot; Algoritma dan Pemrograman
+    </p>
+    <p class="font-sans-ui text-xs mt-1 tracking-widest uppercase text-[#8B857B]">
+      Universitas Garut
+    </p>
+  </header>
+
+  <main id="game-phase" class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-12 gap-8 w-full my-auto hidden">
+    
+    <section class="md:col-span-4 rounded-sm p-6 flex flex-col items-center justify-center text-center bg-[#FFFDF8] shadow-sm border border-[#8B857B]/10">
+      <p class="font-sans-ui text-xs tracking-[0.2em] uppercase mb-1 text-[#8B857B]">Progres Lipatan</p>
+      <h2 id="fold-title" class="font-serif-display text-3xl mb-8 text-[#A44A3F]">Lipatan 1/15</h2>
+
+      <div id="origami-wrapper" class="w-48 h-48 flex items-center justify-center text-[#A44A3F] crane-float">
+        </div>
+
+      <div class="w-full mt-8 h-[2px] bg-[#EDE6D8] rounded-full">
+        <div id="progress-bar" class="h-full rounded-full transition-all duration-500 ease-out" style="width: 0%; background-color: #A44A3F;"></div>
+      </div>
+      
+      <button onclick="resetJourney()" class="mt-8 font-sans-ui text-[11px] uppercase tracking-wider text-[#8B857B] hover:text-[#A44A3F] transition-colors border border-[#8B857B]/20 px-3 py-1.5 rounded-sm">
+        Reset Perjalanan
+      </button>
+    </section>
+
+    <section class="md:col-span-5 rounded-sm p-8 bg-[#FFFDF8] shadow-sm border border-[#8B857B]/10 flex flex-col justify-between">
+      <div>
+        <span id="puzzle-title" class="font-sans-ui text-xs tracking-wider uppercase text-[#A44A3F] font-semibold block mb-1">JUDUL TEKA-TEKI</span>
+        <p id="narrative-text" class="font-serif-display text-base leading-relaxed text-[#8B857B] mb-4 italic"></p>
+        
+        <div class="border-t border-[#8B857B]/10 pt-4 mb-6">
+          <p id="puzzle-question" class="font-serif-display text-xl text-[#2D2A26] leading-relaxed"></p>
+        </div>
+      </div>
+
+      <div>
+        <label for="user-input" class="font-sans-ui block text-xs tracking-wide uppercase mb-2 text-[#8B857B]">Masukkan KEY untuk melipat</label>
+        <div class="flex flex-col sm:flex-row gap-3">
+          <input
+            type="text"
+            id="user-input"
+            placeholder="Ketik KEY di sini..."
+            class="font-mono-code flex-1 px-4 py-3 rounded-sm border outline-none text-sm bg-[#FBF8F1] border-[#E3DBC9] text-[#2D2A26] uppercase tracking-wider"
+            autocomplete="off"
+          />
+          <button id="btn-run" class="font-sans-ui font-semibold px-6 py-3 rounded-sm text-xs uppercase tracking-wider text-[#FFFDF8] bg-[#A44A3F] transition-transform active:scale-[0.97]">
+            Buka Lipatan
+          </button>
+        </div>
+        <p id="feedback-msg" class="font-sans-ui mt-3 text-xs font-medium hidden"></p>
+      </div>
+    </section>
+
+    <section class="md:col-span-3 rounded-sm p-6 bg-[#FFFDF8] shadow-sm border border-[#8B857B]/10 flex flex-col">
+      <h3 class="font-serif-display text-lg text-[#2D2A26] border-b border-[#8B857B]/10 pb-2 mb-4 font-semibold">Gerbang Kunci</h3>
+      <div id="key-history-list" class="flex-1 overflow-y-auto space-y-2 font-mono-code text-xs">
+        </div>
+    </section>
+
+  </main>
+
+  <main id="final-phase" class="max-w-2xl mx-auto w-full hidden flex flex-col items-center text-center my-auto px-4 transition-opacity duration-500 opacity-0">
+    
+    <h2 class="font-serif-display text-4xl sm:text-5xl text-[#2D2A26] tracking-wide mb-1">The First Crane</h2>
+    <p class="font-sans-ui text-xs tracking-widest uppercase text-[#8B857B] mb-8">Ujian Praktik Selesai &middot; Gerbang Lengkap</p>
+
+    <div class="w-64 h-52 flex items-center justify-center my-4">
+      <svg viewBox="0 0 220 200" class="w-full h-full crane-float" stroke="#A44A3F" stroke-width="2" stroke-linejoin="round" fill="#FFFDF8">
+        <polygon points="110,130 160,180 135,140" fill="#F0EAE1" />
+        <polygon points="110,130 50,60 35,40 55,70" fill="#FFFDF8" />
+        <polygon points="110,130 50,60 120,135" fill="#FFFDF8" />
+        
+        <g class="wing-action">
+          <polygon points="110,100 25,70 80,135" fill="#FFFDF8" />
+          <polygon points="110,100 195,70 140,135" fill="#FFFDF8" />
+        </g>
+        
+        <polygon points="80,135 110,105 140,135" fill="#F0EAE1" />
+      </svg>
+    </div>
+
+    <div class="w-full mt-6 max-w-xl">
+      <p class="font-serif-display text-xl sm:text-2xl leading-relaxed text-[#2D2A26] font-medium">
+        "Dari satu langkah kecil hingga perjalanan yang lengkap.<br>
+        Terma kasih telah belajar, mencoba, gagal, memperbaiki, dan mencoba kembali."
+      </p>
+    </div>
+
+    <div class="w-full max-w-sm rounded-sm px-6 py-4 mt-8 mb-10 text-center bg-[#2D2A26] shadow-sm">
+      <p class="font-sans-ui text-[10px] text-[#8B857B] tracking-wider uppercase mb-1">Final Easter Egg Flag</p>
+      <pre class="font-mono-code text-sm text-[#E8E2D4] tracking-widest font-semibold">THE_FIRST_CRANE</pre>
+    </div>
+
+    <button onclick="resetJourney()" class="font-sans-ui font-medium px-8 py-3 rounded-sm text-xs uppercase tracking-wider text-[#8B857B] hover:text-[#A44A3F] transition-all border border-[#8B857B]/30">
+      Ulangi Perjalanan Dari Awal
+    </button>
+  </main>
+
+  <footer class="text-center pt-6 max-w-2xl mx-auto w-full select-none">
+    <p class="font-sans-ui text-[10px] text-[#8B857B] tracking-wider">
+      The First Crane &middot; Universitas Garut &middot; 2026
+    </p>
+  </footer>
+
+  <script>
+    // 15 REFELEKTIF TEKA-TEKI BERTEMA SEJARAH, MITOLOGI, SASTRA, DAN POP-CULTURE SENSASIONAL
+    const CRANE_MISSIONS = [
+      {
+        fold: 1,
+        title: "The Riddle of Time",
+        narrative: "Sebelum melangkah, mari merefleksikan hari esok. Setiap penulisan algoritma adalah bentuk investasi masa depan yang kita bangun sendiri.",
+        question: "Aku selalu datang, namun tak pernah tiba secara instan. Aku selalu hadir di dalam angan-angan, namun tak pernah tinggal menetap. Apakah aku?",
+        answer: "TOMORROW",
+        svg: `<svg viewBox="0 0 200 200" class="w-full h-full fold-active" stroke="currentColor" stroke-width="2" fill="none"><polygon points="100,20 180,100 100,180 20,100"/><line x1="20" y1="100" x2="180" y2="100" stroke-dasharray="4,4"/></svg>`
+      },
+      {
+        fold: 2,
+        title: "Speak Friend and Enter",
+        narrative: "Membuka lembar kedua membutuhkan gerbang kepercayaan. Seperti kolaborasi antar manusia, sebuah sistem besar membutuhkan jembatan rasa hormat.",
+        question: "Pintu gerbang bawah tanah kuno Khazad-dûm (Moria) dalam kisah fiksi epik J.R.R. Tolkien hanya akan terbuka jika engkau dengan tulus mengucapkan satu kata yang berarti 'teman'. Apakah kata itu?",
+        answer: "MELLON",
+        svg: `<svg viewBox="0 0 200 200" class="w-full h-full fold-active" stroke="currentColor" stroke-width="2" fill="none"><polygon points="100,20 180,100 100,100 20,100"/><polygon points="100,100 180,100 100,180 20,100" fill="#2D2A26" fill-opacity="0.05"/></svg>`
+      },
+      {
+        fold: 3,
+        title: "The Precious Trust",
+        narrative: "Informasi dan integritas berjalan beriringan. Menjaga apa yang berharga adalah tanda kedewasaan pikiran.",
+        question: "Terinspirasi dari dialog Gollum. Sesuatu apakah yang jika semakin banyak engkau bagi atau sebarkan kepada orang lain, justru akan semakin sedikit yang engkau miliki sendiri?",
+        answer: "SECRET",
+        svg: `<svg viewBox="0 0 200 200" class="w-full h-full fold-active" stroke="currentColor" stroke-width="2" fill="none"><polygon points="100,20 180,100 100,100"/><polygon points="20,100 100,20 100,100" fill="#2D2A26" fill-opacity="0.05"/></svg>`
+      },
+      {
+        fold: 4,
+        title: "The Weight of Nothing",
+        narrative: "Kesalahan sintaksis terkadang terasa berat, namun beban yang paling berat adalah ketakutan untuk memulai kembali.",
+        question: "Aku tidak memiliki berat, bentuk, ataupun warna, tetapi jika engkau memasukkan aku ke dalam sebuah wadah atau drum besi yang penuh berisi air, aku akan membuat wadah tersebut menjadi lebih ringan. Apakah aku?",
+        answer: "HOLE",
+        svg: `<svg viewBox="0 0 200 200" class="w-full h-full fold-active" stroke="currentColor" stroke-width="2" fill="none"><polygon points="100,20 180,100 20,100"/><line x1="100" y1="20" x2="100" y2="100"/></svg>`
+      },
+      {
+        fold: 5,
+        title: "The Golden Devourer",
+        narrative: "Waktu tidak dapat diputar kembali. Satu semester terasa berlalu sangat cepat jika kita tidak menghargai setiap detiknya.",
+        question: "Teka-teki legendaris Bilbo Baggins dalam 'The Hobbit'. Sesuatu yang mampu melahap segalanya; burung, binatang, pohon, dan bunga. Mengunyah besi, menggigit baja, menumbangkan raja, hingga meruntuhkan kota. Apakah itu?",
+        answer: "TIME",
+        svg: `<svg viewBox="0 0 200 200" class="w-full h-full fold-active" stroke="currentColor" stroke-width="2" fill="none"><polygon points="100,20 150,100 50,100"/><polygon points="150,100 180,100 100,20"/></svg>`
+      },
+      {
+        fold: 6,
+        title: "The Silent Messenger",
+        narrative: "Algoritma bekerja dalam senyap di balik layar monitor. Keberadaannya terasa melalui dampak nyata yang dihasilkannya.",
+        question: "Aku tidak memiliki lidah untuk berbicara, tidak memiliki kaki untuk berjalan, namun aku dapat membawa pesan melintasi daratan dan lautan, menceritakan kisah dunia tanpa bersuara. Apakah aku?",
+        answer: "LETTER",
+        svg: `<svg viewBox="0 0 200 200" class="w-full h-full fold-active" stroke="currentColor" stroke-width="2" fill="none"><polygon points="100,20 150,100 100,140 50,100"/></svg>`
+      },
+      {
+        fold: 7,
+        title: "The Sphinx's Chevron",
+        narrative: "Pertumbuhan manusia adalah siklus alami. Dari ketergantungan menuju kemandirian penuh.",
+        question: "Teka-teki klasik Sphinx kepada Oedipus. Makhluk apakah yang berjalan menggunakan empat kaki di waktu pagi hari, menggunakan dua kaki di siang hari, dan menggunakan tiga kaki pada malam hari?",
+        answer: "MAN",
+        svg: `<svg viewBox="0 0 200 200" class="w-full h-full fold-active" stroke="currentColor" stroke-width="2" fill="none"><polygon points="100,20 150,100 100,140 50,100"/><line x1="100" y1="20" x2="100" y2="140"/></svg>`
+      },
+      {
+        fold: 8,
+        title: "The Dynamic Reflection",
+        narrative: "Saat kita bercermin pada hasil karya kode kita, ego kita harus diredam agar perbaikan bisa masuk.",
+        question: "Jika engkau memandangku, aku akan memandangmu kembali secara jujur. Jika engkau tersenyum, aku pun demikian. Namun, aku tidak akan pernah bisa berbicara secara lisan. Siapakah aku?",
+        answer: "MIRROR",
+        svg: `<svg viewBox="0 0 200 200" class="w-full h-full fold-active" stroke="currentColor" stroke-width="2" fill="none"><polygon points="100,20 130,100 100,150 70,100"/></svg>`
+      },
+      {
+        fold: 9,
+        title: "The Heart of Obsidian",
+        narrative: "Menghadapi error membutuhkan ketenangan hati yang dingin, bukan emosi yang meluap.",
+        question: "Aku lahir dari dalam perut bumi melalui api yang membara, namun jika aku menyentuh air, aku akan membeku menjadi batuan gelap pekat yang tajam bagai belati. Apakah aku?",
+        answer: "LAVA",
+        svg: `<svg viewBox="0 0 200 200" class="w-full h-full fold-active" stroke="currentColor" stroke-width="2" fill="none"><polygon points="100,15 130,95 100,160 70,95"/><line x1="70" y1="95" x2="130" y2="95" stroke-dasharray="3,3"/></svg>`
+      },
+      {
+        fold: 10,
+        title: "The Endless Bridge",
+        narrative: "Pendidikan adalah jembatan tanpa ujung. Berpindah dari satu pulau ketidaktahuan menuju pulau pemahaman baru.",
+        question: "Aku menghubungkan dua tempat yang terpisah, memungkinkan ribuan kaki menyeberang di atasku. Namun, aku sendiri tidak pernah bergeser satu sentimeter pun sepanjang masa hidupku. Apakah aku?",
+        answer: "BRIDGE",
+        svg: `<svg viewBox="0 0 200 200" class="w-full h-full fold-active" stroke="currentColor" stroke-width="2" fill="none"><polygon points="100,15 130,95 100,160"/><polygon points="100,15 70,95 100,160"/></svg>`
+      },
+      {
+        fold: 11,
+        title: "The Breath of Winter",
+        narrative: "Tekanan ujian kadang membekukan logika, luangkan napas sejenak untuk mengurai benang kusut.",
+        question: "Aku tidak terlihat, tidak berwujud, namun kehadiranku mampu membuat hutan meranggas dan air danau mengeras mengunci kehidupan di bawahnya. Apakah aku?",
+        answer: "FROST",
+        svg: `<svg viewBox="0 0 200 200" class="w-full h-full fold-active" stroke="currentColor" stroke-width="2" fill="none"><polygon points="100,15 130,95 115,160 100,140 85,160 70,95"/></svg>`
+      },
+      {
+        fold: 12,
+        title: "The Achilles Vault",
+        narrative: "Setiap program memiliki kelemahan (vulnerability). Menemukannya adalah bagian dari seni pemecahan masalah.",
+        question: "Dalam legenda Yunani, pahlawan besar Achilles tak terkalahkan di medan laga, kecuali jika senjata musuh berhasil mendarat tepat pada satu titik anatomi tubuhnya. Di manakah letak kelemahan itu?",
+        answer: "HEEL",
+        svg: `<svg viewBox="0 0 200 200" class="w-full h-full fold-active" stroke="currentColor" stroke-width="2" fill="none"><polygon points="100,25 145,95 100,135 55,95"/><path d="M55,95 L30,65"/></svg>`
+      },
+      {
+        fold: 13,
+        title: "The Unseen Companion",
+        narrative: "Kegagalan akan selalu mengikuti langkah kita sebelum keberhasilan datang mengetuk pintu.",
+        question: "Aku tumbuh subur di bawah paparan sinar matahari terang, berlari mengejarmu di sepanjang jalan, namun aku akan langsung menghilang lenyap ketika kegelapan malam menjemput. Apakah aku?",
+        answer: "SHADOW",
+        svg: `<svg viewBox="0 0 200 200" class="w-full h-full fold-active" stroke="currentColor" stroke-width="2" fill="none"><polygon points="100,30 140,95 100,140 60,95"/><path d="M50,85 L25,45 M150,85 L175,45"/></svg>`
+      },
+      {
+        fold: 14,
+        title: "The Keyless Lock",
+        narrative: "Tantangan terakhir di depan mata. Hanya ketekunan yang mampu memecahkan cangkang keras pelindung kesuksesan.",
+        question: "Rumah tanpa pintu, lemari emas tanpa kunci tersembunyi, namun di dalam dindingnya yang mulus tersimpan harta karun berharga cair yang rapuh. Apakah aku?",
+        answer: "EGG",
+        svg: `<svg viewBox="0 0 200 200" class="w-full h-full stroke-current" stroke-width="1.8" fill="none"><polygon points="100,40 135,100 100,145 65,100"/><path d="M65,100 L30,60 M135,100 L170,60 M100,145 L115,175"/></svg>`
+      },
+      {
+        fold: 15,
+        title: "The Phoenix Core",
+        narrative: "Lipatan kelimabelas selesai. Lembaran acak ingatan perkuliahan kini menyatu membentuk kesadaran baru yang utuh.",
+        question: "Aku hancur menjadi abu ketika masa hidupku selesai, namun dari sisa abu pembakaran itu pula aku terlahir kembali menjadi entitas baru yang lebih perkasa. Siapakah aku?",
+        answer: "PHOENIX",
+        svg: `<svg viewBox="0 0 200 200" class="w-full h-full stroke-current" fill="none"><polygon points="100,50 130,105 100,150 70,105"/><path d="M70,105 L35,65 M130,105 L165,65 M100,150 L120,185 M100,50 L85,25"/></svg>`
+      }
+    ];
+
+    let currentStep = 0; 
+    let audioCtx = null;
+
+    // SINTESIS AUDIO MANUAL GENERATOR (Efek Kertas Geser)
+    function playPaperSound() {
+      try {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+
+        const duration = 0.3;
+        const bufferSize = audioCtx.sampleRate * duration;
+        const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+
+        const noise = audioCtx.createBufferSource();
+        noise.buffer = buffer;
+
+        const bandpass = audioCtx.createBiquadFilter();
+        bandpass.type = "bandpass";
+        bandpass.frequency.setValueAtTime(2200, audioCtx.currentTime);
+        bandpass.frequency.exponentialRampToValueAtTime(900, audioCtx.currentTime + duration);
+
+        const gain = audioCtx.createGain();
+        gain.gain.setValueAtTime(0.0001, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.3, audioCtx.currentTime + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration);
+
+        noise.connect(bandpass);
+        bandpass.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        noise.start();
+        noise.stop(audioCtx.currentTime + duration);
+      } catch (e) {}
+    }
+
+    // STATE INITIALIZATION DARI LOCALSTORAGE
+    function loadProgress() {
+      const savedProgress = localStorage.getItem('crane_progress');
+      if (savedProgress !== null) {
+        currentStep = parseInt(savedProgress, 10);
+      } else {
+        currentStep = 0;
+      }
+      updateUI();
+    }
+
+    // RESET FUNCTION
+    function resetJourney() {
+      localStorage.removeItem('crane_progress');
+      currentStep = 0;
+      document.getElementById('final-phase').classList.add('hidden');
+      document.getElementById('final-phase').classList.remove('opacity-100');
+      updateUI();
+    }
+
+    // UPDATE UI ENGINE MANAGEMENT
+    function updateUI() {
+      const totalMissions = CRANE_MISSIONS.length;
+
+      // Render Riwayat Gerbang Kunci Samping Kanan
+      const historyContainer = document.getElementById('key-history-list');
+      historyContainer.innerHTML = '';
+      CRANE_MISSIONS.forEach((m, idx) => {
+        const item = document.createElement('div');
+        item.className = "flex items-center gap-2 py-1 border-b border-[#8B857B]/5";
+        if (idx < currentStep) {
+          item.innerHTML = `<span class="text-green-700">✓</span> <span class="line-through text-[#8B857B]">${m.answer}</span>`;
+        } else if (idx === currentStep) {
+          item.innerHTML = `<span class="text-[#A44A3F] animate-pulse">▶</span> <span class="font-bold text-[#2D2A26] tracking-wider">????</span>`;
+        } else {
+          item.innerHTML = `<span class="text-gray-300">□</span> <span class="text-gray-300">LOCKED</span>`;
+        }
+        historyContainer.appendChild(item);
+      });
+
+      if (currentStep >= totalMissions) {
+        // Tampilkan halaman akhir
+        document.getElementById('main-header').classList.add('hidden');
+        document.getElementById('game-phase').classList.add('hidden');
+        
+        const finalPhaseEl = document.getElementById('final-phase');
+        finalPhaseEl.classList.remove('hidden');
+        setTimeout(() => { finalPhaseEl.classList.add('opacity-100'); }, 50);
+        return;
+      }
+
+      // Tampilkan halaman game/puzzle berjalan
+      document.getElementById('main-header').classList.remove('hidden');
+      document.getElementById('game-phase').classList.remove('hidden');
+      
+      const currentMission = CRANE_MISSIONS[currentStep];
+      
+      document.getElementById('fold-title').innerText = `Lipatan ${currentStep + 1}/${totalMissions}`;
+      document.getElementById('puzzle-title').innerText = `${currentStep + 1}. ${currentMission.title}`;
+      document.getElementById('narrative-text').innerText = currentMission.narrative;
+      document.getElementById('puzzle-question').innerText = currentMission.question;
+      document.getElementById('origami-wrapper').innerHTML = currentMission.svg;
+      document.getElementById('progress-bar').style.width = `${((currentStep + 1) / totalMissions) * 100}%`;
+      
+      document.getElementById('user-input').value = '';
+      document.getElementById('user-input').focus();
+    }
+
+    // VALIDASI KUNCI JAWABAN (KEY VERIFICATION)
+    function checkKey() {
+      if (currentStep >= CRANE_MISSIONS.length) return;
+
+      const currentMission = CRANE_MISSIONS[currentStep];
+      const userInput = document.getElementById('user-input').value.trim().toUpperCase();
+      const feedback = document.getElementById('feedback-msg');
+      const inputEl = document.getElementById('user-input');
+
+      if (userInput === currentMission.answer) {
+        feedback.className = "font-sans-ui mt-3 text-xs font-medium text-green-700";
+        feedback.innerText = "✓ Lipatan berhasil. Kunci terverifikasi.";
+        feedback.classList.remove('hidden');
+        
+        playPaperSound();
+
+        setTimeout(() => {
+          feedback.classList.add('hidden');
+          currentStep++;
+          localStorage.setItem('crane_progress', currentStep);
+          updateUI();
+        }, 850);
+      } else {
+        inputEl.classList.add('shake');
+        feedback.className = "font-sans-ui mt-3 text-xs text-[#A44A3F]";
+        feedback.innerText = "Coba ingat kembali materi pada pertemuan ini atau periksa KEY Anda.";
+        feedback.classList.remove('hidden');
+        
+        setTimeout(() => inputEl.classList.remove('shake'), 400);
+      }
+    }
+
+    // EVENT BINDING
+    document.getElementById('btn-run').addEventListener('click', checkKey);
+    document.getElementById('user-input').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') checkKey();
+    });
+
+    // Jalankan inisialisasi awal
+    loadProgress();
+  </script>
+</body>
+</html>
